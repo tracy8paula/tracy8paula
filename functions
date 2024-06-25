@@ -1,0 +1,31 @@
+##creating your own functions
+a = 2    #here a and b are global variables as they're outside our function
+b = 4
+def add():
+    sum = a+b
+    print(sum)
+
+add()
+
+
+def bugs():
+    numbugs = int(input("How many bugs? "))   #here, numbugs is our local variable
+    print(f"There are {numbugs} bugs.")
+
+bugs()
+
+
+def add(a,b):  #here a and b are local variables since they're within our function
+    sum = a+b       #a and b are our arguments
+    print(sum) 
+
+add(2,4)
+add(65,4)
+
+
+def add(a,b):
+    sum = a+b 
+    
+    return sum
+rectangle_area = add(2,4)
+print(f"The sum is {rectangle_area}.")
