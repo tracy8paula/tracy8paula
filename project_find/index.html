@@ -1,54 +1,87 @@
 <!DOCTYPE html>
-<html lang = "en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Project Find</title>
-        <style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Find</title>
+    <style>
         body {
             background-color: #e6f2ff; /* Pale blue */
             color: #333;
             font-family: Arial, sans-serif;
+            text-align: center;
         }
         header, footer {
             background-color: #d1e0e0; /* Beige blue */
             padding: 10px;
             text-align: center;
         }
-        section {
-            margin: 20px;
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+        }
+        form {
+            background-color: #f9f9f9;
             padding: 20px;
             border: 1px solid #ccc;
-            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
+        form h2 {
             color: #004080;
+            margin-bottom: 20px;
         }
-        select {
-            margin-top: 10px;
-            padding: 5px;
+        form input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             font-size: 16px;
         }
+        form button {
+            background-color: #004080;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #003366;
+        }
     </style>
-        <p>This is the most basic a website can ever get to...</p>
-    </head>
-    <body>
-        <div class="accordion" id="accordionExample">
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        Accordion 1
-                    </button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
-                    <div class="accordion-body">
-                        <strong> trial 01</strong>
-                    </div>
-                </div>
-            </div>
-        <section>
-                <h2>What is Project Find?</h2>
-                <p>This is focused on making sure the operator has full aware whereabouts of the current travels.</p>
-            </section>
-    </body>
+</head>
+<body>
+    <header>
+        <h1>Welcome to Project Find</h1>
+    </header>
+    <main>
+        <form id="loginForm">
+            <h2>Please Login</h2>
+            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            <input type="password" id="pin" name="pin" placeholder="Enter your PIN" required>
+            <button type="button" onclick="validateLogin()">Continue</button>
+        </form>
+    </main>
+    <footer>
+        <p>&copy; 2025 Project Find. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        function validateLogin() {
+            const email = document.getElementById('email').value;
+            const pin = document.getElementById('pin').value;
+
+            if (email && pin) {
+                window.location.href = 'page_two.html';
+            } else {
+                alert('Please enter both email and PIN to continue.');
+            }
+        }
+    </script>
+</body>
 </html>
