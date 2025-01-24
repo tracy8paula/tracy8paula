@@ -22,6 +22,12 @@ def add(a,b):  #here a and b are local variables since they're within our functi
 add(2,4)
 add(65,4)
 
+def divide(a,b):
+    ans = a/b
+    return and
+
+hypotenuse = divide(2,6)
+print(f"The answer is {hypotenuse}.")
 
 def add(a,b):
     sum = a+b 
