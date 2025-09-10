@@ -1,0 +1,249 @@
+###
+# ADONGO TRACY PAULA M24B38/008
+###
+# World Bank IDA Credits Analysis for Uganda
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+# Loading the data set
+data <- read_csv("C:/Users/EXTON TECH/Desktop/2ndYear/practice_in_R/datasets/ida_credits_to_uganda_09-20-2025.csv")
+
+# calling the data set
+View(data)
+
+# Data exploration and cleaning
+glimpse(data)
+summary(data)
+#this returns that the data set has 191 entries and missing values
+
+# QUESTION 1: TIME-SERIES ANALYSIS OF DISBURSED AMOUNT
+# Creating time-series analysis through grouping by year and sum disbursements alongside the no. of projects
+# removing the day and month from the first repayment date 
+data$year <- as.numeric(format(as.Date(data$`First Repayment Date`), "%Y"))
+# grouping
+yearly_disbursements <- data %>%
+  group_by(year) %>%
+  summarise(
+    total_disbursed = sum(`Disbursed Amount (US$)`, na.rm = TRUE),
+    count_projects = n(),
+    avg_disbursement = mean(`Disbursed Amount (US$)`, na.rm = TRUE)
+  ) %>%
+  filter(!is.na(year))
+
+View(yearly_disbursements)
+
+# Plot 1: Time series of total disbursements
+p1 <- ggplot(yearly_disbursements, aes(x = year, y = total_disbursed)) +
+  geom_line(color = "blue", size = 1.2) +
+  geom_point(color = "orange", size = 3) +
+  geom_smooth(method = "lm", se = TRUE, alpha = 0.2, color = "darkgreen") +
+  scale_y_continuous(labels = function(x) paste0("$", x/1e6, "M")) +
+  labs(
+    title = "World Bank IDA Disbursements to Uganda Over Time",
+    subtitle = "Total Annual Disbursements (US$ Millions)",
+    x = "Year",
+    y = "Disbursed Amount (US$ Millions)",
+    caption = "Source: World Bank IDA Credits Dataset"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+print(p1)
+
+# Calculating trend statistics
+disbursement_trend <- lm(total_disbursed ~ year, data = yearly_disbursements)
+trend_summary <- summary(disbursement_trend)
+
+cat(" DISBURSEMENT TREND ANALYSIS \n")
+cat("Slope (annual change):", round(disbursement_trend$coefficients[2], 2), "USD\n")
+cat("R-squared:", round(trend_summary$r.squared, 4), "\n")
+cat("P-value:", round(trend_summary$coefficients[2,4], 4), "\n")
+
+# QUESTION 2: CREDIT STATUS ANALYSIS
+# Analyze credit status distribution
+credit_status_summary <- data %>%
+  group_by(`Credit Status`) %>%
+  summarise(
+    count = n(),
+    total_amount = sum(`Disbursed Amount (US$)`, na.rm = TRUE),
+    avg_amount = mean(`Disbursed Amount (US$)`, na.rm = TRUE),
+    percentage = n() / nrow(data) * 100,
+    .groups = 'drop'
+  ) %>%
+  arrange(desc(count))
+
+print(credit_status_summary)
+
+# Plot to show Credit Status Distribution by Count
+p3 <- ggplot(credit_status_summary, aes(x = reorder(`Credit Status`, count), y = count)) +
+  geom_col(fill = "purple", alpha = 0.8) +
+  geom_text(aes(label = count), hjust = -0.1, size = 3.5) +
+  coord_flip() +
+  labs(
+    title = "Distribution of Credit Status",
+    subtitle = "Number of Credits by Status",
+    x = "Credit Status",
+    y = "Number of Credits"
+  ) +
+  theme_minimal()
+
+print(p3)
+
+# Plot to show Credit Status by Total Amount
+p4 <- ggplot(credit_status_summary, aes(x = reorder(`Credit Status`, total_amount), y = total_amount)) +
+  geom_col(fill = "skyblue", alpha = 0.8) +
+  geom_text(aes(label = paste0("$", round(total_amount/1e6, 1), "M")), 
+            hjust = -0.1, size = 3.5) +
+  coord_flip() +
+  scale_y_continuous(labels = function(x) paste0("$", x/1e6, "M")) +
+  labs(
+    title = "Total Disbursed Amount by Credit Status",
+    x = "Credit Status",
+    y = "Total Disbursed Amount (US$ Millions)"
+  ) +
+  theme_minimal()
+
+print(p4)
+
+# Credit status over time
+status_over_time <- data %>%
+  group_by(year, `Credit Status`) %>%
+  summarise(
+    count = n(),
+    total_amount = sum(`Disbursed Amount (US$)`, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  filter(!is.na(year))
+
+# Plot to Credit Status Evolution Over Time
+p5 <- ggplot(status_over_time, aes(x = year, y = count, fill = `Credit Status`)) +
+  geom_area(alpha = 0.7) +
+  scale_fill_brewer(type = "qual", palette = "Set2") +
+  labs(
+    title = "Evolution of Credit Status Over Time",
+    x = "Year",
+    y = "Number of Credits",
+    fill = "Credit Status"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+print(p5)
+
+# QUESTION 3: ORIGINAL PRINCIPAL AMOUNT ANALYSIS
+# Analyze original principal amounts
+principal_summary <- data %>%
+  summarise(
+    total_principal = sum(`Original Principal Amount (US$)`, na.rm = TRUE),
+    avg_principal = mean(`Original Principal Amount (US$)`, na.rm = TRUE),
+    median_principal = median(`Original Principal Amount (US$)`, na.rm = TRUE),
+    min_principal = min(`Original Principal Amount (US$)`, na.rm = TRUE),
+    max_principal = max(`Original Principal Amount (US$)`, na.rm = TRUE),
+    std_dev = sd(`Original Principal Amount (US$)`, na.rm = TRUE)
+  )
+
+print(" ORIGINAL PRINCIPAL AMOUNT SUMMARY ")
+print(principal_summary)
+
+# Principal amounts over time
+yearly_principal <- data %>%
+  group_by(year) %>%
+  summarise(
+    total_principal = sum(`Original Principal Amount (US$)`, na.rm = TRUE),
+    avg_principal = mean(`Original Principal Amount (US$)`, na.rm = TRUE),
+    count = n(),
+    .groups = 'drop'
+  ) %>%
+  filter(!is.na(year))
+
+# Plot to show Original Principal Amount Trends
+p6 <- ggplot(yearly_principal, aes(x = year)) +
+  geom_col(aes(y = total_principal), fill = "lightgreen", alpha = 0.7) +
+  geom_line(aes(y = avg_principal * 10), color = "darkorange", size = 1.5) +
+  scale_y_continuous(
+    name = "Total Principal Amount (US$ Millions)",
+    labels = function(x) paste0("$", x/1e6, "M"),
+    sec.axis = sec_axis(~ . / 10, 
+                        name = "Average Principal per Credit (US$ Millions)",
+                        labels = function(x) paste0("$", x/1e6, "M"))
+  ) +
+  labs(
+    title = "Original Principal Amount Analysis Over Time",
+    subtitle = "Bars: Total Principal | Line: Average Principal per Credit",
+    x = "Year"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y.left = element_text(color = "grey"),
+    axis.title.y.right = element_text(color = "darkgreen")
+  )
+
+print(p6)
+
+# Plot toshow Distribution of Principal Amounts
+p7 <- ggplot(data, aes(x = `Original Principal Amount (US$)`)) +
+  geom_histogram(bins = 30, fill = "violet", alpha = 0.7, color = "beige") +
+  scale_x_continuous(labels = function(x) paste0("$", x/1e6, "M")) +
+  labs(
+    title = "Distribution of Original Principal Amounts",
+    x = "Original Principal Amount (US$ Millions)",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+print(p7)
+
+# Top 10 largest credits
+top_credits <- data %>%
+  arrange(desc(`Original Principal Amount (US$)`)) %>%
+  select(`Project Name`, `Original Principal Amount (US$)`, `Disbursed Amount (US$)`, `Credit Status`) %>%
+  head(10)
+
+print(" TOP 10 LARGEST CREDITS BY PRINCIPAL AMOUNT ")
+print(top_credits)
+
+# Principal vs Disbursed correlation
+correlation_analysis <- cor(data$`Original Principal Amount (US$)`, 
+                            data$`Disbursed Amount (US$)`, 
+                            use = "complete.obs")
+
+# Principal vs Disbursed Scatter Plot
+p8 <- ggplot(data, aes(x = `Original Principal Amount (US$)`, y = `Disbursed Amount (US$)`)) +
+  geom_point(alpha = 0.6, color = "orange") +
+  geom_smooth(method = "lm", se = TRUE, color = "skyblue") +
+  scale_x_continuous(labels = function(x) paste0("$", x/1e6, "M")) +
+  scale_y_continuous(labels = function(x) paste0("$", x/1e6, "M")) +
+  labs(
+    title = paste("Principal vs Disbursed Amount (Correlation:", round(correlation_analysis, 3), ")"),
+    x = "Original Principal Amount (US$ Millions)",
+    y = "Disbursed Amount (US$ Millions)"
+  ) +
+  theme_minimal()
+
+print(p8)
+
+# SUMMARY STATISTICS AND PATTERNS
+
+cat("\n SUMMARY INSIGHTS \n")
+cat("1. DISBURSEMENT TRENDS:\n")
+cat("   - Total disbursed to date: $", round(sum(data$`Disbursed Amount (US$)`, na.rm = TRUE)/1e9, 2), "B\n")
+cat("   - Average annual disbursement: $", round(mean(yearly_disbursements$total_disbursed, na.rm = TRUE)/1e6, 1), "M\n")
+cat("   - Number of years covered:", nrow(yearly_disbursements), "\n\n")
+
+cat("2. CREDIT STATUS OVERVIEW:\n")
+for(i in 1:nrow(credit_status_summary)) {
+  cat("   -", credit_status_summary$`Credit Status`[i], ":", 
+      credit_status_summary$count[i], "credits (",
+      round(credit_status_summary$percentage[i], 1), "%)\n")
+}
+
+cat("\n3. PRINCIPAL AMOUNT PATTERNS:\n")
+cat("   - Total principal committed: $", round(sum(data$`Original Principal Amount (US$)`, na.rm = TRUE)/1e9, 2), "B\n")
+cat("   - Average credit size: $", round(mean(data$`Original Principal Amount (US$)`, na.rm = TRUE)/1e6, 1), "M\n")
+cat("   - Disbursement rate:", round(sum(data$`Disbursed Amount (US$)`, na.rm = TRUE) / sum(data$`Original Principal Amount (US$)`, na.rm = TRUE) * 100, 1), "%\n")
+cat("   - Principal-Disbursed Correlation:", round(correlation_analysis, 3), "\n")
